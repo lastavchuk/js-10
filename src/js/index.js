@@ -9,11 +9,35 @@ const refs = {
   modal: document.querySelector('.js-modal'),
 };
 
-refs.select.classList.add('hide');
-
+selectHide();
 loadingPage();
 
-renderListOfCats();
+fetchBreeds()
+  .then(data => {
+    let listOfCats =
+      '<option disabled="disabled" selected="selected">Select cat</option>';
+
+    listOfCats += data
+      .map(({ id, name }) => `<option value="${id}">${name}</option>`)
+      .join('');
+
+    refs.select.innerHTML = listOfCats;
+
+    selectShow();
+
+    new SlimSelect({
+      select: '.breed-select',
+    });
+
+    loadPage();
+  })
+  .catch(err => {
+    Report.failure(
+      'Oops! Something went wrong!',
+      `Try reloading the page! ${err}`,
+      'OK'
+    );
+  });
 
 refs.select.addEventListener('change', handlerGetCat);
 
@@ -32,7 +56,7 @@ function handlerGetCat(evt) {
 }
 
 function renderCats(arrCats) {
-  if (arrCats.length === 0) {
+  if (!arrCats.length) {
     Report.warning(
       'No information found about the cat',
       'Choose another cat or try reloading the page!',
@@ -72,36 +96,6 @@ function renderCats(arrCats) {
   loadPage();
 }
 
-function renderListOfCats() {
-  loadingPage();
-  fetchBreeds()
-    .then(data => {
-      let listOfCats =
-        '<option disabled="disabled" selected="selected">Select cat</option>';
-
-      listOfCats += data
-        .map(({ id, name }) => `<option value="${id}">${name}</option>`)
-        .join('');
-
-      refs.select.innerHTML = listOfCats;
-
-      refs.select.classList.remove('hide');
-
-      new SlimSelect({
-        select: '.breed-select',
-      });
-
-      loadPage();
-    })
-    .catch(err => {
-      Report.failure(
-        'Oops! Something went wrong!',
-        `Try reloading the page! ${err}`,
-        'OK'
-      );
-    });
-}
-
 function loadingPage() {
   refs.modal.classList.remove('is-hidden');
   refs.catInfo.innerHTML = '';
@@ -109,4 +103,11 @@ function loadingPage() {
 
 function loadPage() {
   refs.modal.classList.add('is-hidden');
+}
+
+function selectHide() {
+  refs.select.classList.add('hide');
+}
+function selectShow() {
+  refs.select.classList.remove('hide');
 }
